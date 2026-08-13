@@ -54,9 +54,11 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _update_movement(delta: float) -> void:
-	var axis := Input.get_axis(KEY_A, KEY_D)
-	if axis == 0.0:
-		axis = Input.get_axis(KEY_LEFT, KEY_RIGHT)
+	var axis := 0.0
+	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
+		axis -= 1.0
+	if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
+		axis += 1.0
 
 	if axis != 0.0:
 		facing = signf(axis)
