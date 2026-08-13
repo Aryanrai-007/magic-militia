@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://game/scripts/spark_projectile.gd" id="1_projectile"]
+[ext_resource type="Texture2D" path="res://assets/sprites/spark.svg" id="2_spark"]
 
 [sub_resource type="CircleShape2D" id="Circle_projectile"]
 radius = 7.0
@@ -10,6 +11,10 @@ collision_layer = 2
 collision_mask = 1
 monitoring = true
 script = ExtResource("1_projectile")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_spark")
+scale = Vector2(0.45, 0.45)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("Circle_projectile")
