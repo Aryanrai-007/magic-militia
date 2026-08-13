@@ -2,55 +2,70 @@
 
 **Cast. Fly. Conquer.**
 
-Magic Militia is a 2D physics-driven fantasy arena combat game inspired by the fast aerial combat of Mini Militia and the magical itemization of Terraria.
+Magic Militia is a fast 2D magical arena brawler: jetpack movement, spell projectiles, melee runes and short chaotic matches.
 
-## Current milestone — 0.1 Movement Prototype
+## Two playable targets
 
-The first build intentionally focuses on game feel:
+### Godot prototype
 
-- 2D wizard controller
-- Gravity and momentum
-- Jetpack with fuel management
-- Directional mouse aiming
-- Spark Wand projectile
-- Basic melee attack
-- HP and respawn
-- Gray-box arena
-- Minimal HUD
+The native prototype contains the physics foundation:
 
-Networking, progression, matchmaking, advanced weapons, destructible terrain, and final art are deliberately deferred until the movement/combat loop is fun.
+- Four hard arena walls
+- Custom wizard and spark SVG sprites
+- Gravity, momentum and jetpack fuel
+- Mouse aiming and Spark Wand casting
+- Functional melee rune with damage, knockback and visual feedback
+- HP, death and respawn
+- Magical arena backdrop and traversal platforms
 
-## Engine
+Run with **Godot 4.x** by importing `project.godot` and pressing **F6/F5**.
 
-- Godot 4.x
-- GDScript
-- 2D physics
+### Web game
 
-## Project structure
+The `web/` client is the player-facing version:
+
+- Landing page with instant guest entry
+- No account and no saved player data
+- Create or join a room by code
+- Maximum 5 players per room
+- Ten-minute matches
+- Highest kill count wins
+- Respawns are allowed
+- A practice fallback runs when the room server is unavailable
+- Mouse casting, jetpack movement and **F** melee all work in-browser
+
+## Run the web version
+
+```bash
+cd server
+npm install
+npm start
+```
+
+Then open **http://localhost:8080**.
+
+The server keeps rooms, names, positions and scores **in memory only**. Restarting the server wipes everything. There is no database, account system, analytics store or persistent profile.
+
+## Repository layout
 
 ```text
 magic-militia/
-├── game/
-│   ├── scenes/
-│   ├── scripts/
-│   └── weapons/
-├── docs/
-├── assets/
-├── tests/
-└── project.godot
+├── game/                 # Godot prototype
+├── web/                  # Landing page + browser game client
+├── server/               # Ephemeral room/WebSocket server
+├── assets/               # Custom SVG game art
+└── docs/                 # Architecture and roadmap
 ```
 
-## Run
+## Match rules
 
-1. Install Godot 4.x.
-2. Import this repository as a Godot project.
-3. Run `game/scenes/main.tscn`.
-4. Move with **A/D** or **Left/Right**.
-5. Hold **Space** for the jetpack.
-6. Aim with the mouse and **Left Click** to cast.
-7. Press **F** for the melee strike.
-8. Press **R** to reset after a death.
+- 5 players maximum
+- 10:00 match timer
+- Unlimited respawns
+- Kills determine the winner
+- Rooms disappear when their last player leaves
+- No persistent data
 
-## Design source
+## Controls
 
-The initial product specification lives in the project planning conversation and defines the longer-term weapon, biome, game-mode, multiplayer, progression, and networking roadmap.
+**A/D or Arrow keys:** move  ·  **Space:** jetpack  ·  **Mouse:** aim/cast  ·  **F:** melee
