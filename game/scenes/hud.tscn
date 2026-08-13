@@ -1,0 +1,35 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/hud.gd" id="1_hud"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 330.0
+offset_bottom = 150.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="MarginContainer/VBoxContainer"]
+theme_override_font_sizes/font_size = 22
+text = "🪄 MAGIC MILITIA"
+
+[node name="HP" type="ProgressBar" parent="MarginContainer/VBoxContainer"]
+max_value = 100.0
+value = 100.0
+show_percentage = true
+
+[node name="Fuel" type="ProgressBar" parent="MarginContainer/VBoxContainer"]
+max_value = 1.8
+value = 1.8
+show_percentage = false
+
+[node name="Status" type="Label" parent="MarginContainer/VBoxContainer"]
+text = "Booting arena..."
+
+[node name="Controls" type="Label" parent="MarginContainer/VBoxContainer"]
+text = "A/D: Move   SPACE: Jetpack   LMB: Cast   F: Melee   R: Respawn"
