@@ -42,7 +42,6 @@ func _physics_process(delta: float) -> void:
 		if Input.is_action_just_pressed("reset"):
 			_respawn()
 		return
-
 	cast_timer = maxf(cast_timer - delta, 0.0)
 	melee_timer = maxf(melee_timer - delta, 0.0)
 	melee_flash = maxf(melee_flash - delta, 0.0)
@@ -54,17 +53,13 @@ func _physics_process(delta: float) -> void:
 
 func _update_movement(delta: float) -> void:
 	var axis := Input.get_axis("move_left", "move_right")
-	var target_speed := axis * move_speed
-	var acceleration := ground_acceleration if is_on_floor() else air_acceleration
-	velocity.x = move_toward(velocity.x, target_speed, acceleration * delta)
-
+	velocity.x = move_toward(velocity.x, axis * move_speed, (ground_acceleration if is_on_floor() else air_acceleration) * delta)
 	if Input.is_action_pressed("jetpack") and jetpack_fuel > 0.0:
 		velocity.y = move_toward(velocity.y, -jetpack_acceleration * 0.55, jetpack_acceleration * delta)
 		jetpack_fuel = maxf(jetpack_fuel - jetpack_fuel_burn * delta, 0.0)
 	else:
 		velocity.y = minf(velocity.y + gravity * delta, max_fall_speed)
-		var regen := jetpack_regen * (2.0 if is_on_floor() else 1.0)
-		jetpack_fuel = minf(jetpack_fuel + regen * delta, jetpack_max_fuel)
+		jetpack_fuel = minf(jetpack_fuel + jetpack_regen * (2.0 if is_on_floor() else 1.0) * delta, jetpack_max_fuel)
 	fuel_changed.emit(jetpack_fuel, jetpack_max_fuel)
 
 func _update_aim() -> void:
@@ -91,15 +86,14 @@ func _cast_spark() -> void:
 
 func _perform_melee() -> void:
 	melee_flash = 0.16
-	var space_state := get_world_2d().direct_space_state
+	var query := PhysicsShapeQueryParameters2D.new()
 	var shape := CircleShape2D.new()
 	shape.radius = 58.0
-	var query := PhysicsShapeQueryParameters2D.new()
 	query.shape = shape
 	query.transform = Transform2D(0.0, global_position + aim_direction * 42.0)
 	query.collide_with_bodies = true
 	query.exclude = [self]
-	for result in space_state.intersect_shape(query, 16):
+	for result in get_world_2d().direct_space_state.intersect_shape(query, 16):
 		var body = result.get("collider")
 		if body != null and body.has_method("take_damage"):
 			body.take_damage(melee_damage, global_position)
@@ -110,8 +104,7 @@ func take_damage(amount: float, source_position: Vector2 = global_position) -> v
 	if health <= 0.0:
 		return
 	health = maxf(health - amount, 0.0)
-	var direction := signf(global_position.x - source_position.x)
-	velocity += Vector2(direction * 220.0, -180.0)
+	velocity += Vector2(signf(global_position.x - source_position.x) * 220.0, -180.0)
 	health_changed.emit(health, max_health)
 	if health <= 0.0:
 		died.emit()
@@ -122,10 +115,9 @@ func _respawn() -> void:
 	health = max_health
 	jetpack_fuel = jetpack_max_fuel
 	health_changed.emit(health, max_health)
-	fuel_changed.emit(jetpack_fuel, max_fuel)
+	fuel_changed.emit(jetpack_fuel, jetpack_max_fuel)
 
 func _draw() -> void:
-	# Melee rune flash: clear visual feedback that the F/melee action fired.
 	if melee_flash > 0.0:
 		var alpha := melee_flash / 0.16
 		draw_arc(aim_direction * 38.0, 42.0, -1.15, 1.15, 20, Color(0.76, 0.55, 1.0, alpha), 8.0)
