@@ -17,6 +17,6 @@
     <section id="game" class="screen game-screen"><div class="game-top"><div class="brand small"><span class="brand-mark">✦</span>MAGIC MILITIA</div><div id="roomBadge">ROOM -----</div><div id="timer">10:00</div><button id="leaveGame" class="danger">LEAVE</button></div><canvas id="gameCanvas" width="1280" height="720"></canvas><div class="hud"><div class="bars"><div><span>HP</span><div class="bar"><i id="hpBar"></i></div></div><div><span>JETPACK</span><div class="bar mana"><i id="fuelBar"></i></div></div></div><div id="scoreboard" class="scoreboard"></div><div class="controls">A/D MOVE · SPACE FLY · MOUSE AIM + CAST · F MELEE</div></div><div id="matchEnd" class="match-end hidden"><p class="eyebrow">MATCH OVER</p><h2 id="winnerText">The arena has a champion.</h2><div id="finalScores"></div><button id="playAgain" class="primary">PLAY AGAIN ✦</button></div></section>
   </div>
   <dialog id="howDialog"><h2>How to play</h2><p>Fly with Space, move with A/D, aim with your mouse and cast with left click. Press F to unleash your melee rune. Get more kills than everyone else before the ten-minute timer hits zero.</p><button id="closeHow" class="secondary">GOT IT</button></dialog>
-  <script src="./app.js"></script><script src="./characters.js"></script><script src="./character-fix.js"></script><script src="./game-watchdog.js"></script>
+  <script src="./app.js"></script><script src="./characters.js"></script><script src="./character-renderer.js"></script>
 </body>
 </html>
