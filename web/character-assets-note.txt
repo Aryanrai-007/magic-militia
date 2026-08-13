@@ -1,0 +1,1 @@
+Character art source: Basic Asset Pack.zip supplied in chat. The web character picker embeds the selected 16x16-frame PNG assets directly so Netlify does not need a separate binary asset deployment step.
