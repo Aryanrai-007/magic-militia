@@ -1,0 +1,5 @@
+[build]
+  publish = "web"
+
+# The browser client is a static site. Multiplayer WebSockets are served by
+# the separate Node server in /server, not by Netlify's static hosting.
