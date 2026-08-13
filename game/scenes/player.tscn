@@ -1,14 +1,19 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://game/scripts/player.gd" id="1_player"]
 [ext_resource type="PackedScene" path="res://game/scenes/spark_projectile.tscn" id="2_projectile"]
+[ext_resource type="Texture2D" path="res://assets/sprites/wizard.svg" id="3_wizard"]
 
 [sub_resource type="CircleShape2D" id="Circle_player"]
-radius = 18.0
+radius = 20.0
 
 [node name="Wizard" type="CharacterBody2D" groups=["players"]]
 script = ExtResource("1_player")
 projectile_scene = ExtResource("2_projectile")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("3_wizard")
+scale = Vector2(0.58, 0.58)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("Circle_player")
