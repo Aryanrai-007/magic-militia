@@ -20,14 +20,14 @@ signal died
 @export var max_health := 100.0
 @export var projectile_scene: PackedScene
 @export var cast_cooldown := 0.18
-@export var melee_cooldown := 0.45
-@export var melee_damage := 18.0
+@export var melee_cooldown := 0.55
+@export var melee_damage := 25.0
 
 var health := max_health
 var jetpack_fuel := jetpack_max_fuel
 var cast_timer := 0.0
 var melee_timer := 0.0
-var facing := 1.0
+var melee_flash := 0.0
 var spawn_position := Vector2.ZERO
 var aim_direction := Vector2.RIGHT
 
@@ -35,18 +35,17 @@ func _ready() -> void:
 	spawn_position = global_position
 	health_changed.emit(health, max_health)
 	fuel_changed.emit(jetpack_fuel, jetpack_max_fuel)
-	queue_redraw()
 
 func _physics_process(delta: float) -> void:
 	if health <= 0.0:
-		if Input.is_key_pressed(KEY_R):
-			_respawn()
-			return
 		velocity = Vector2.ZERO
+		if Input.is_action_just_pressed("reset"):
+			_respawn()
 		return
 
 	cast_timer = maxf(cast_timer - delta, 0.0)
 	melee_timer = maxf(melee_timer - delta, 0.0)
+	melee_flash = maxf(melee_flash - delta, 0.0)
 	_update_movement(delta)
 	_update_aim()
 	_update_combat()
@@ -54,44 +53,30 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _update_movement(delta: float) -> void:
-	var axis := 0.0
-	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
-		axis -= 1.0
-	if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
-		axis += 1.0
-
-	if axis != 0.0:
-		facing = signf(axis)
-
+	var axis := Input.get_axis("move_left", "move_right")
 	var target_speed := axis * move_speed
 	var acceleration := ground_acceleration if is_on_floor() else air_acceleration
 	velocity.x = move_toward(velocity.x, target_speed, acceleration * delta)
 
-	var jetpacking := Input.is_key_pressed(KEY_SPACE)
-	if jetpacking and jetpack_fuel > 0.0:
+	if Input.is_action_pressed("jetpack") and jetpack_fuel > 0.0:
 		velocity.y = move_toward(velocity.y, -jetpack_acceleration * 0.55, jetpack_acceleration * delta)
 		jetpack_fuel = maxf(jetpack_fuel - jetpack_fuel_burn * delta, 0.0)
 	else:
 		velocity.y = minf(velocity.y + gravity * delta, max_fall_speed)
-		if is_on_floor():
-			jetpack_fuel = minf(jetpack_fuel + jetpack_regen * delta * 2.0, jetpack_max_fuel)
-		else:
-			jetpack_fuel = minf(jetpack_fuel + jetpack_regen * delta, jetpack_max_fuel)
-
+		var regen := jetpack_regen * (2.0 if is_on_floor() else 1.0)
+		jetpack_fuel = minf(jetpack_fuel + regen * delta, jetpack_max_fuel)
 	fuel_changed.emit(jetpack_fuel, jetpack_max_fuel)
 
 func _update_aim() -> void:
 	var to_mouse := get_global_mouse_position() - global_position
 	if to_mouse.length_squared() > 4.0:
 		aim_direction = to_mouse.normalized()
-		facing = signf(aim_direction.x) if absf(aim_direction.x) > 0.05 else facing
 
 func _update_combat() -> void:
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and cast_timer <= 0.0:
+	if Input.is_action_pressed("cast") and cast_timer <= 0.0:
 		_cast_spark()
 		cast_timer = cast_cooldown
-
-	if Input.is_key_pressed(KEY_F) and melee_timer <= 0.0:
+	if Input.is_action_just_pressed("melee") and melee_timer <= 0.0:
 		_perform_melee()
 		melee_timer = melee_cooldown
 
@@ -105,18 +90,21 @@ func _cast_spark() -> void:
 	get_tree().current_scene.add_child(projectile)
 
 func _perform_melee() -> void:
+	melee_flash = 0.16
 	var space_state := get_world_2d().direct_space_state
 	var shape := CircleShape2D.new()
-	shape.radius = 52.0
+	shape.radius = 58.0
 	var query := PhysicsShapeQueryParameters2D.new()
 	query.shape = shape
-	query.transform = Transform2D(0.0, global_position + aim_direction * 40.0)
+	query.transform = Transform2D(0.0, global_position + aim_direction * 42.0)
 	query.collide_with_bodies = true
 	query.exclude = [self]
-	for result in space_state.intersect_shape(query, 8):
+	for result in space_state.intersect_shape(query, 16):
 		var body = result.get("collider")
 		if body != null and body.has_method("take_damage"):
 			body.take_damage(melee_damage, global_position)
+			if body is CharacterBody2D:
+				body.velocity += aim_direction * 420.0 + Vector2(0, -100)
 
 func take_damage(amount: float, source_position: Vector2 = global_position) -> void:
 	if health <= 0.0:
@@ -134,15 +122,11 @@ func _respawn() -> void:
 	health = max_health
 	jetpack_fuel = jetpack_max_fuel
 	health_changed.emit(health, max_health)
-	fuel_changed.emit(jetpack_fuel, jetpack_max_fuel)
+	fuel_changed.emit(jetpack_fuel, max_fuel)
 
 func _draw() -> void:
-	# Placeholder wizard silhouette. Final modular sprites replace this drawing layer.
-	draw_circle(Vector2.ZERO, 18.0, Color("#8b5cf6"))
-	draw_circle(Vector2(0, -17), 12.0, Color("#f4c7a1"))
-	var hat := PackedVector2Array([Vector2(-16, -24), Vector2(0, -48), Vector2(16, -24)])
-	draw_colored_polygon(hat, Color("#312e81"))
-	var jetpack_color := Color("#f59e0b") if Input.is_key_pressed(KEY_SPACE) and jetpack_fuel > 0 else Color("#64748b")
-	draw_circle(Vector2(-10, 18), 5.0, jetpack_color)
-	draw_circle(Vector2(10, 18), 5.0, jetpack_color)
-	draw_line(Vector2.ZERO, aim_direction * 30.0, Color("#fef3c7"), 5.0)
+	# Melee rune flash: clear visual feedback that the F/melee action fired.
+	if melee_flash > 0.0:
+		var alpha := melee_flash / 0.16
+		draw_arc(aim_direction * 38.0, 42.0, -1.15, 1.15, 20, Color(0.76, 0.55, 1.0, alpha), 8.0)
+		draw_circle(aim_direction * 38.0, 10.0, Color(0.93, 0.82, 1.0, alpha))
